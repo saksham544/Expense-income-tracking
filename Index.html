@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MoneyMate - Expense & Budget Manager</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+    font-family:Arial,Helvetica,sans-serif;
+}
+
+:root{
+    --bg:#f4f7fb;
+    --card:#ffffff;
+    --text:#182230;
+    --muted:#718096;
+    --primary:#2563eb;
+    --primary2:#06b6d4;
+    --green:#16a34a;
+    --red:#dc2626;
+    --orange:#f59e0b;
+    --border:#e5e7eb;
+    --shadow:0 10px 30px rgba(0,0,0,.07);
+}
+
+body.dark{
+    --bg:#0f172a;
+    --card:#172033;
+    --text:#f8fafc;
+    --muted:#94a3b8;
+    --border:#263449;
+    --shadow:0 10px 30px rgba(0,0,0,.25);
+}
+
+body{
+    background:var(--bg);
+    color:var(--text);
+    transition:.3s;
+}
+
+button,input,select{
+    font:inherit;
+}
+
+button{
+    cursor:pointer;
+    border:0;
+}
+
+.app{
+    display:flex;
+    min-height:100vh;
+}
+
+/* SIDEBAR */
+
+.sidebar{
+    width:250px;
+    background:var(--card);
+    border-right:1px solid var(--border);
+    padding:25px 16px;
+    position:fixed;
+    height:100vh;
+    left:0;
+    top:0;
+    z-index:20;
+}
+
+.logo{
+    font-size:23px;
+    font-weight:800;
+    margin-bottom:30px;
+    color:var(--primary);
+}
+
+.logo span{
+    color:var(--text);
+}
+
+.nav{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+}
+
+.nav button{
+    padding:13px 15px;
+    background:transparent;
+    color:var(--muted);
+    border-radius:12px;
+    text-align:left;
+}
+
+.nav button:hover,
+.nav button.active{
+    background:#2563eb15;
+    color:var(--primary);
+}
+
+.sidebar-bottom{
+    position:absolute;
+    bottom:25px;
+    left:16px;
+    right:16px;
+}
+
+.theme-btn{
+    width:100%;
+    padding:12px;
+    border-radius:12px;
+    background:var(--bg);
+    color:var(--text);
+}
+
+/* MAIN */
+
+.main{
+    margin-left:250px;
+    width:calc(100% - 250px);
+    padding:25px;
+}
+
+.topbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:25px;
+}
+
+.topbar h1{
+    font-size:28px;
+}
+
+.top-actions{
+    display:flex;
+    gap:10px;
+}
+
+.icon-btn{
+    width:42px;
+    height:42px;
+    border-radius:12px;
+    background:var(--card);
+    color:var(--text);
+    box-shadow:var(--shadow);
+}
+
+/* SECTIONS */
+
+.section{
+    display:none;
+}
+
+.section.active{
+    display:block;
+}
+
+/* DASHBOARD */
+
+.stats{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:18px;
+    margin-bottom:20px;
+}
+
+.stat{
+    background:var(--card);
+    padding:20px;
+    border-radius:18px;
+    box-shadow:var(--shadow);
+}
+
+.stat-title{
+    color:var(--muted);
+    font-size:14px;
+    margin-bottom:10px;
+}
+
+.stat-value{
+    font-size:25px;
+    font-weight:800;
+}
+
+.green{
+    color:var(--green);
+}
+
+.red{
+    color:var(--red);
+}
+
+.blue{
+    color:var(--primary);
+}
+
+.orange{
+    color:var(--orange);
+}
+
+/* GRID */
+
+.grid{
+    display:grid;
+    grid-template-columns:2fr 1fr;
+    gap:20px;
+}
+
+.card{
+    background:var(--card);
+    border-radius:18px;
+    padding:20px;
+    box-shadow:var(--shadow);
+    margin-bottom:20px;
+}
+
+.card h2{
+    font-size:18px;
+    margin-bottom:16px;
+}
+
+/* CHART */
+
+.chart-box{
+    height:320px;
+}
+
+/* TRANSACTIONS */
+
+.transaction-list{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+.transaction{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:14px;
+    border:1px solid var(--border);
+    border-radius:13px;
+}
+
+.transaction-left{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.transaction-icon{
+    width:42px;
+    height:42px;
+    display:grid;
+    place-items:center;
+    border-radius:12px;
+    background:#2563eb15;
+    font-size:20px;
+}
+
+.transaction-name{
+    font-weight:700;
+}
+
+.transaction-date{
+    font-size:12px;
+    color:var(--muted);
+    margin-top:3px;
+}
+
+.amount{
+    font-weight:800;
+}
+
+.transaction-actions{
+    display:flex;
+    gap:5px;
+}
+
+.small-btn{
+    padding:7px 9px;
+    border-radius:8px;
+    background:var(--bg);
+    color:var(--text);
+}
+
+/* FORMS */
+
+.form-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:15px;
+}
+
+.form-group{
+    display:flex;
+    flex-direction:column;
+    gap:7px;
+}
+
+.form-group.full{
+    grid-column:1/-1;
+}
+
+label{
+    color:var(--muted);
+    font-size:13px;
+}
+
+input,select{
+    width:100%;
+    padding:12px 13px;
+    border-radius:10px;
+    border:1px solid var(--border);
+    background:var(--bg);
+    color:var(--text);
+    outline:none;
+}
+
+input:focus,select:focus{
+    border-color:var(--primary);
+}
+
+.primary-btn{
+    background:linear-gradient(135deg,var(--primary),var(--primary2));
+    color:white;
+    padding:12px 18px;
+    border-radius:10px;
+    font-weight:700;
+}
+
+.danger-btn{
+    background:#dc262615;
+    color:var(--red);
+    padding:10px 15px;
+    border-radius:10px;
+}
+
+.secondary-btn{
+    background:var(--bg);
+    color:var(--text);
+    padding:12px 18px;
+    border-radius:10px;
+}
+
+/* BUDGET */
+
+.budget-item{
+    margin-bottom:20px;
+}
+
+.budget-header{
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:8px;
+}
+
+.progress{
+    height:10px;
+    background:var(--bg);
+    border-radius:20px;
+    overflow:hidden;
+}
+
+.progress-bar{
+    height:100%;
+    border-radius:20px;
+    background:linear-gradient(90deg,var(--primary),var(--primary2));
+}
+
+/* BILL */
+
+.bill{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:15px;
+    border:1px solid var(--border);
+    border-radius:13px;
+    margin-bottom:10px;
+}
+
+.bill-title{
+    font-weight:700;
+}
+
+.bill-info{
+    font-size:12px;
+    color:var(--muted);
+    margin-top:4px;
+}
+
+.badge{
+    display:inline-block;
+    padding:5px 9px;
+    border-radius:20px;
+    font-size:11px;
+    font-weight:bold;
+}
+
+.badge.red{
+    background:#dc262615;
+}
+
+.badge.green{
+    background:#16a34a15;
+}
+
+/* PAYMENT */
+
+.payment-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:15px;
+}
+
+.payment{
+    padding:25px;
+    border:1px solid var(--border);
+    border-radius:16px;
+    text-align:center;
+}
+
+.payment-icon{
+    font-size:40px;
+    margin-bottom:10px;
+}
+
+.payment h3{
+    margin-bottom:8px;
+}
+
+.payment p{
+    color:var(--muted);
+    font-size:13px;
+    margin-bottom:15px;
+}
+
+/* SEARCH */
+
+.search-row{
+    display:flex;
+    gap:10px;
+    margin-bottom:15px;
+}
+
+.search-row input{
+    flex:1;
+}
+
+/* EMPTY */
+
+.empty{
+    text-align:center;
+    padding:30px;
+    color:var(--muted);
+}
+
+/* MODAL */
+
+.modal{
+    position:fixed;
+    inset:0;
+    background:#0008;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:100;
+    padding:20px;
+}
+
+.modal.show{
+    display:flex;
+}
+
+.modal-box{
+    background:var(--card);
+    width:100%;
+    max-width:550px;
+    border-radius:20px;
+    padding:25px;
+    max-height:90vh;
+    overflow:auto;
+}
+
+.modal-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:20px;
+}
+
+.close{
+    background:var(--bg);
+    color:var(--text);
+    width:35px;
+    height:35px;
+    border-radius:10px;
+}
+
+/* MOBILE */
+
+.mobile-menu{
+    display:none;
+}
+
+@media(max-width:1000px){
+    .stats{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+    .grid{
+        grid-template-columns:1fr;
+    }
+
+    .payment-grid{
+        grid-template-columns:1fr;
+    }
+}
+
+@media(max-width:700px){
+
+    .sidebar{
+        transform:translateX(-100%);
+        transition:.3s;
+    }
+
+    .sidebar.open{
+        transform:translateX(0);
+    }
+
+    .main{
+        margin-left:0;
+        width:100%;
+        padding:15px;
+    }
+
+    .mobile-menu{
+        display:block;
+    }
+
+    .stats{
+        grid-template-columns:1fr 1fr;
+        gap:10px;
+    }
+
+    .stat{
+        padding:15px;
+    }
+
+    .stat-value{
+        font-size:19px;
+    }
+
+    .form-grid{
+        grid-template-columns:1fr;
+    }
+
+    .form-group.full{
+        grid-column:auto;
+    }
+
+    .topbar h1{
+        font-size:21px;
+    }
+
+    .transaction{
+        align-items:flex-start;
+    }
+
+    .transaction-actions{
+        flex-direction:column;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<!-- SIDEBAR -->
+
+<aside class="sidebar" id="sidebar">
+
+    <div class="logo">
+        💰 Money<span>Mate</span>
+    </div>
+
+    <div class="nav">
+
+        <button class="active" onclick="showSection('dashboard',this)">
+            🏠 Dashboard
+        </button>
+
+        <button onclick="showSection('transactions',this)">
+            💳 Transactions
+        </button>
+
+        <button onclick="showSection('budget',this)">
+            🎯 Budget
+        </button>
+
+        <button onclick="showSection('bills',this)">
+            🔔 Bills
+        </button>
+
+        <button onclick="showSection('payments',this)">
+            💸 Payments
+        </button>
+
+        <button onclick="showSection('settings',this)">
+            ⚙️ Settings
+        </button>
+
+    </div>
+
+    <div class="sidebar-bottom">
+        <button class="theme-btn" onclick="toggleTheme()">
+            🌙 Toggle Theme
+        </button>
+    </div>
+
+</aside>
+
+
+<!-- MAIN -->
+
+<main class="main">
+
+<header class="topbar">
+
+    <div>
+        <button class="icon-btn mobile-menu" onclick="toggleSidebar()">☰</button>
+        <h1 id="pageTitle">Dashboard</h1>
+    </div>
+
+    <div class="top-actions">
+        <button class="icon-btn" onclick="openAddTransaction()">➕</button>
+    </div>
+
+</header>
+
+
+<!-- DASHBOARD -->
+
+<section id="dashboard" class="section active">
+
+    <div class="stats">
+
+        <div class="stat">
+            <div class="stat-title">Total Balance</div>
+            <div class="stat-value blue" id="balance">NPR 0</div>
+        </div>
+
+        <div class="stat">
+            <div class="stat-title">Income</div>
+            <div class="stat-value green" id="income">NPR 0</div>
+        </div>
+
+        <div class="stat">
+            <div class="stat-title">Expenses</div>
+            <div class="stat-value red" id="expenses">NPR 0</div>
+        </div>
+
+        <div class="stat">
+            <div class="stat-title">Remaining Budget</div>
+            <div class="stat-value orange" id="remainingBudget">NPR 0</div>
+        </div>
+
+    </div>
+
+
+    <div class="grid">
+
+        <div class="card">
+
+            <h2>Spending Overview</h2>
+
+            <div class="chart-box">
+                <canvas id="expenseChart"></canvas>
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <h2>Expense Categories</h2>
+
+            <div id="categoryList"></div>
+
+        </div>
+
+    </div>
+
+
+    <div class="card">
+
+        <h2>Recent Transactions</h2>
+
+        <div id="recentTransactions" class="transaction-list"></div>
+
+    </div>
+
+</section>
+
+
+<!-- TRANSACTIONS -->
+
+<section id="transactions" class="section">
+
+    <div class="card">
+
+        <h2>All Transactions</h2>
+
+        <div class="search-row">
+
+            <input
+                id="transactionSearch"
+                placeholder="Search transactions..."
+                oninput="renderTransactions()"
+            >
+
+            <select id="transactionFilter" onchange="renderTransactions()">
+
+                <option value="all">All</option>
+                <option value="income">Income</option>
+                <option value="expense">Expense</option>
+
+            </select>
+
+        </div>
+
+        <div id="transactionsList" class="transaction-list"></div>
+
+    </div>
+
+</section>
+
+
+<!-- BUDGET -->
+
+<section id="budget" class="section">
+
+    <div class="card">
+
+        <h2>Create Budget</h2>
+
+        <form id="budgetForm">
+
+            <div class="form-grid">
+
+                <div class="form-group">
+                    <label>Category</label>
+
+                    <select id="budgetCategory" required>
+                        <option>Food</option>
+                        <option>Transport</option>
+                        <option>Shopping</option>
+                        <option>Entertainment</option>
+                        <option>Bills</option>
+                        <option>Education</option>
+                        <option>Health</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+
+                    <label>Monthly Limit (NPR)</label>
+
+                    <input
+                        type="number"
+                        id="budgetAmount"
+                        min="1"
+                        required
+                    >
+
+                </div>
+
+                <div class="form-group full">
+
+                    <button class="primary-btn">
+                        Save Budget
+                    </button>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+
+    <div class="card">
+
+        <h2>Your Budgets</h2>
+
+        <div id="budgetList"></div>
+
+    </div>
+
+</section>
+
+
+<!-- BILLS -->
+
+<section id="bills" class="section">
+
+    <div class="card">
+
+        <h2>Add Bill Reminder</h2>
+
+        <form id="billForm">
+
+            <div class="form-grid">
+
+                <div class="form-group">
+                    <label>Bill Name</label>
+
+                    <input
+                        id="billName"
+                        placeholder="Internet / Electricity"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label>Amount (NPR)</label>
+
+                    <input
+                        type="number"
+                        id="billAmount"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+
+                    <label>Due Date</label>
+
+                    <input
+                        type="date"
+                        id="billDate"
+                        required
+                    >
+
+                </div>
+
+                <div class="form-group">
+
+                    <label>Repeat</label>
+
+                    <select id="billRepeat">
+
+                        <option value="none">One time</option>
+                        <option value="monthly">Monthly</option>
+                        <option value="yearly">Yearly</option>
+
+                    </select>
+
+                </div>
+
+                <div class="form-group full">
+
+                    <button class="primary-btn">
+                        Add Bill Reminder
+                    </button>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+
+    <div class="card">
+
+        <h2>Upcoming Bills</h2>
+
+        <div id="billList"></div>
+
+    </div>
+
+</section>
+
+
+<!-- PAYMENTS -->
+
+<section id="payments" class="section">
+
+    <div class="card">
+
+        <h2>Local Payment</h2>
+
+        <p style="color:var(--muted);margin-bottom:20px;">
+            Payment shortcuts for Nepal. Connect your merchant
+            account/API for real payment processing.
+        </p>
+
+        <div class="payment-grid">
+
+            <div class="payment">
+
+                <div class="payment-icon">🟢</div>
+
+                <h3>eSewa</h3>
+
+                <p>
+                    Pay using your eSewa account.
+                </p>
+
+                <button
+                    class="primary-btn"
+                    onclick="paymentInfo('eSewa')"
+                >
+                    Pay with eSewa
+                </button>
+
+            </div>
+
+
+            <div class="payment">
+
+                <div class="payment-icon">🟣</div>
+
+                <h3>Khalti</h3>
+
+                <p>
+                    Pay using Khalti.
+                </p>
+
+                <button
+                    class="primary-btn"
+                    onclick="paymentInfo('Khalti')"
+                >
+                    Pay with Khalti
+                </button>
+
+            </div>
+
+
+            <div class="payment">
+
+                <div class="payment-icon">🏦</div>
+
+                <h3>Bank Transfer</h3>
+
+                <p>
+                    Record a local bank payment.
+                </p>
+
+                <button
+                    class="primary-btn"
+                    onclick="bankPayment()"
+                >
+                    Bank Payment
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="card">
+
+        <h2>Payment Notes</h2>
+
+        <div class="form-group">
+
+            <label>Payment Amount</label>
+
+            <input
+                type="number"
+                id="paymentAmount"
+                placeholder="Enter amount"
+            >
+
+        </div>
+
+        <br>
+
+        <div class="form-group">
+
+            <label>Reference / Note</label>
+
+            <input
+                id="paymentNote"
+                placeholder="Example: Electricity bill"
+            >
+
+        </div>
+
+        <br>
+
+        <button
+            class="primary-btn"
+            onclick="savePayment()"
+        >
+            Save Payment Record
+        </button>
+
+    </div>
+
+
+    <div class="card">
+
+        <h2>Payment History</h2>
+
+        <div id="paymentHistory"></div>
+
+    </div>
+
+</section>
+
+
+<!-- SETTINGS -->
+
+<section id="settings" class="section">
+
+    <div class="card">
+
+        <h2>Data Management</h2>
+
+        <p style="color:var(--muted);margin-bottom:15px;">
+            Your data is stored locally in this browser.
+        </p>
+
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+
+            <button
+                class="primary-btn"
+                onclick="exportData()"
+            >
+                📤 Export Backup
+            </button>
+
+            <button
+                class="secondary-btn"
+                onclick="document.getElementById('importFile').click()"
+            >
+                📥 Import Backup
+            </button>
+
+            <input
+                type="file"
+                id="importFile"
+                accept=".json"
+                hidden
+                onchange="importData(event)"
+            >
+
+            <button
+                class="danger-btn"
+                onclick="clearAllData()"
+            >
+                🗑️ Clear All Data
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <div class="card">
+
+        <h2>Currency</h2>
+
+        <select id="currencySelect" onchange="changeCurrency()">
+
+            <option value="NPR">NPR - Nepalese Rupee</option>
+            <option value="USD">USD - US Dollar</option>
+            <option value="INR">INR - Indian Rupee</option>
+
+        </select>
+
+    </div>
+
+</section>
+
+</main>
+
+</div>
+
+
+<!-- TRANSACTION MODAL -->
+
+<div class="modal" id="transactionModal">
+
+<div class="modal-box">
+
+    <div class="modal-header">
+
+        <h2 id="transactionModalTitle">
+            Add Transaction
+        </h2>
+
+        <button
+            class="close"
+            onclick="closeModal()"
+        >
+            ✕
+        </button>
+
+    </div>
+
+
+    <form id="transactionForm">
+
+        <input type="hidden" id="transactionId">
+
+        <div class="form-grid">
+
+            <div class="form-group">
+
+                <label>Type</label>
+
+                <select id="transactionType">
+
+                    <option value="expense">
+                        Expense
+                    </option>
+
+                    <option value="income">
+                        Income
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>Amount</label>
+
+                <input
+                    type="number"
+                    id="transactionAmount"
+                    min="1"
+                    required
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>Title</label>
+
+                <input
+                    id="transactionTitle"
+                    placeholder="Lunch / Salary"
+                    required
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>Category</label>
+
+                <select id="transactionCate
